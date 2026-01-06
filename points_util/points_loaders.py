@@ -1,4 +1,5 @@
 import csv
+from points_util.points_classes import Rect, Point
 
 
 def load_points_csv(path: str):
@@ -7,7 +8,7 @@ def load_points_csv(path: str):
         r = csv.reader(f)
         next(r, None)  # header: x,y
         for row in r:
-            pts.append(QTPoint(float(row[0]), float(row[1])))
+            pts.append(Point(float(row[0]), float(row[1])))
     return pts
 
 
