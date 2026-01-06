@@ -9,7 +9,7 @@ def prepare_queries_for_N(N: int, sample_points=5000, overwrite=True):
     """
     Dla każdego pliku output/N_<N>/*.csv robi (albo nadpisuje) *.query.csv
     """
-    folder = os.path.join("../output", f"N_{N}")
+    folder = os.path.join("output", f"N_{N}")
     csv_files = sorted(glob.glob(os.path.join(folder, "*.csv")))
     csv_files = [p for p in csv_files if not p.endswith(".query.csv")]
 

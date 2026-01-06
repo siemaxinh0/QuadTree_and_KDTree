@@ -354,7 +354,7 @@ def run_for_custom(
     interval=120,
     also_save_png=True
 ):
-    out_dir = os.path.join("times", "custom", "gifs")
+    out_dir = os.path.join("results", "custom", "gifs")
     os.makedirs(out_dir, exist_ok=True)
 
     csv_files = sorted(glob.glob(os.path.join(custom_dir, "*.csv")))

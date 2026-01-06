@@ -116,7 +116,7 @@ if __name__ == "__main__":
     OUT = "../output"
     ensure_dir(OUT)
 
-    sizes = [100,1_000, 5_000, 10_000, 50_000]
+    sizes = [100,1_000, 10_000,100_000]
 
     for N in sizes:
         folder = os.path.join(OUT, f"N_{N}")

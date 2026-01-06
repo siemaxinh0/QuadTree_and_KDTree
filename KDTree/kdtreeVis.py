@@ -381,8 +381,8 @@ def run_gifs_for_N_kdtree(
     interval=120,
     also_save_png=True
 ):
-    in_dir = os.path.join("output", f"N_{N}")
-    out_dir = os.path.join("times", f"N_{N}", "gifs_kdtree")
+    in_dir = os.path.join("../output", f"N_{N}")
+    out_dir = os.path.join("results", f"N_{N}", "gifs_kdtree")
     os.makedirs(out_dir, exist_ok=True)
 
     csv_files = sorted(glob.glob(os.path.join(in_dir, "*.csv")))
