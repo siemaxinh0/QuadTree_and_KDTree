@@ -1,43 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
-
-
-# Twoje klasy bazowe
-@dataclass(frozen=True)
-class Point:
-    x: float
-    y: float
-
-
-@dataclass(frozen=True)
-class Rect:
-    cx: float
-    cy: float
-    hw: float
-    hh: float
-
-    @property
-    def left(self) -> float: return self.cx - self.hw
-
-    @property
-    def right(self) -> float: return self.cx + self.hw
-
-    @property
-    def bottom(self) -> float: return self.cy - self.hh
-
-    @property
-    def top(self) -> float: return self.cy + self.hh
-
-    def contains_point(self, p: Point) -> bool:
-        return (self.left <= p.x < self.right and
-                self.bottom <= p.y < self.top)
-
-    def intersects(self, other: "Rect") -> bool:
-        return not (other.left >= self.right or
-                    other.right <= self.left or
-                    other.bottom >= self.top or
-                    other.top <= self.bottom)
-
+from points_util.points_classes import *
 
 class KDNode:
     def __init__(self, point: Point, left=None, right=None):

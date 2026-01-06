@@ -1,6 +1,6 @@
 from kdtree import *
 
-from QuadTree.algorithmsVis import load_points_csv, load_query_rect
+from points_util.points_loaders import *
 
 def run_test():
     points = load_points_csv("../output/custom/custom_1.csv")
