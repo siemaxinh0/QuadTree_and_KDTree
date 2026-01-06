@@ -3,7 +3,7 @@ from points_util.time_compare import bench_both_all, save_separate_tables_both
 
 # sizes = [100,1000,10000,100000]
 # for s in sizes:
-#     prepare_queries_for_N(s)
+# prepare_queries_for_N(1000000)
 
 OUTPUT_ROOT = "output"
 results = bench_both_all(OUTPUT_ROOT, capacity=8, max_depth=16)

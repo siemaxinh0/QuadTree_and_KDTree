@@ -3,7 +3,6 @@ import glob
 from collections import deque
 
 from data_generators.query_picker import pick_query_for_existing_csv
-from points_util.points_loaders import load_query_rect, load_points_csv
 from visualizer.main import Visualizer
 from QuadTree.quadtree import Rect, QuadTree, Point as QTPoint, bounding_rect_pairwise
 
@@ -249,8 +248,8 @@ def run_images_for_N(
     sample_points=5000,
     max_levels=10
 ):
-    in_dir = os.path.join("../output", f"N_{N}")
-    out_dir = os.path.join("results", f"N_{N}", "images")
+    in_dir = os.path.join("output", f"N_{N}")
+    out_dir = os.path.join("times", f"N_{N}", "images")
     os.makedirs(out_dir, exist_ok=True)
 
     csv_files = sorted(glob.glob(os.path.join(in_dir, "*.csv")))
@@ -263,14 +262,7 @@ def run_images_for_N(
         base = os.path.splitext(os.path.basename(csv_path))[0]
         out_png = os.path.join(out_dir, f"{base}_quadtree.png")
 
-        query_path = csv_path.replace(".csv", ".query.csv")
-        if not os.path.exists(query_path):
-            raise FileNotFoundError(
-                f"Brak query: {query_path}\n"
-                f"Najpierw odpal: prepare_queries_for_N({N})"
-            )
-
-        query_square = load_query_rect(query_path)
+        query_path, query_square = pick_query_for_existing_csv(csv_path, sample_points=sample_points)
 
         found = render_quadtree_image_from_csv(
             csv_path=csv_path,
@@ -285,19 +277,18 @@ def run_images_for_N(
         print(f"[IMG] {csv_path} | query={query_path} -> hits={len(found)} | png={out_png}")
 
 
-
 def run_for_N(
     N: int,
     capacity=8,
     max_depth=16,
-    sample_points=1500,     # do rysowania (gif)
+    sample_points=1500,     # do rysowania (gif i picker)
     max_levels=10,
     show_pruned=False,
     interval=120,
     also_save_png=True
 ):
-    in_dir = os.path.join("../output", f"N_{N}")
-    out_dir = os.path.join("results", f"N_{N}", "gifs")
+    in_dir = os.path.join("output", f"N_{N}")
+    out_dir = os.path.join("times", f"N_{N}", "gifs")
     os.makedirs(out_dir, exist_ok=True)
 
     csv_files = sorted(glob.glob(os.path.join(in_dir, "*.csv")))
@@ -311,14 +302,8 @@ def run_for_N(
         out_gif = os.path.join(out_dir, f"{base}_quadtree.gif")
         out_png = os.path.join(out_dir, f"{base}_quadtree.png") if also_save_png else None
 
-        query_path = csv_path.replace(".csv", ".query.csv")
-        if not os.path.exists(query_path):
-            raise FileNotFoundError(
-                f"Brak query: {query_path}\n"
-                f"Najpierw odpal: prepare_queries_for_N({N})"
-            )
-
-        query_square = load_query_rect(query_path)
+        # ZAWSZE pytaj o query + zapisz obok pliku
+        query_path, query_square = pick_query_for_existing_csv(csv_path, sample_points=sample_points)
 
         found = render_quadtree_gif_from_csv(
             csv_path=csv_path,
@@ -339,7 +324,6 @@ def run_for_N(
         print(msg)
 
 
-
 # ======================================================================
 # RUNNERS — output/custom/
 # ======================================================================
@@ -354,7 +338,7 @@ def run_for_custom(
     interval=120,
     also_save_png=True
 ):
-    out_dir = os.path.join("results", "custom", "gifs")
+    out_dir = os.path.join("times", "custom", "gifs")
     os.makedirs(out_dir, exist_ok=True)
 
     csv_files = sorted(glob.glob(os.path.join(custom_dir, "*.csv")))

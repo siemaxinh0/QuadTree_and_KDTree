@@ -1,4 +1,3 @@
-# custom_data_generator.py
 import os
 import csv
 
