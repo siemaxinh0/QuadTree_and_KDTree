@@ -5,7 +5,7 @@ from collections import deque
 
 from data_generators.query_picker import pick_query_for_existing_csv
 from visualizer.main import Visualizer
-from quadtree import Rect, QuadTree, Point as QTPoint, bounding_rect_pairwise
+from QuadTree.quadtree import Rect, QuadTree, Point as QTPoint, bounding_rect_pairwise
 
 
 # ---------------- I/O ----------------

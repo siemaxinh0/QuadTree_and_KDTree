@@ -3,13 +3,11 @@ import os
 import csv
 import glob
 
-import numpy as np
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-from matplotlib.widgets import RectangleSelector
 
-from quadtree import Rect
+from QuadTree.quadtree import Rect
 
 
 def load_points_csv_xy(path: str):

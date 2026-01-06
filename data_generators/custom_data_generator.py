@@ -8,7 +8,7 @@ matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
 
-from quadtree import Rect
+from QuadTree.quadtree import Rect
 
 
 def _save_csv(points, filepath):

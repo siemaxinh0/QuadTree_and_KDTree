@@ -1,6 +1,6 @@
 from custom_data_generator import make_custom_points_and_query
 
-K = 3
+K = 1
 paths = []
 queries = []
 
