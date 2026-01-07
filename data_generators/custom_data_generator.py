@@ -18,7 +18,6 @@ def _save_csv(points, filepath):
         w.writerows(points)
 
 
-# >>> DODANE: zapis prostokąta query do pliku <<<
 def _save_query_rect(r: Rect, filepath: str):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, "w", newline="", encoding="utf-8") as f:
@@ -84,13 +83,11 @@ def make_custom_points_and_query(
 
         x, y = float(event.xdata), float(event.ydata)
 
-        # LPM dodaj
         if event.button == 1:
             points.append((x, y))
             refresh()
             return
 
-        # PPM usuń najbliższy
         if event.button == 3 and points:
             best_i = 0
             best_d = float("inf")
@@ -171,10 +168,7 @@ def make_custom_points_and_query(
     csv_path = os.path.join(out_dir, f"{name_prefix}.csv")
     _save_csv(points, csv_path)
 
-    # >>> DODANE: zapis query obok punktów <<<
     query_path = os.path.join(out_dir, f"{name_prefix}.query.csv")
     _save_query_rect(query_rect["rect"], query_path)
 
-    # jeśli chcesz zachować identyczny return jak wcześniej, zostaw 3 wartości:
     return csv_path, query_rect["rect"], points
-    # (plik query zapisuje się zawsze do: output/custom/<name_prefix>.query.csv)

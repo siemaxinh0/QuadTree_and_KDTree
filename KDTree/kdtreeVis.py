@@ -1,4 +1,3 @@
-# kdtreeVis.py
 import os
 import csv
 import glob
@@ -65,9 +64,6 @@ def _kd_search_plain(node, range_rect, depth, result):
         _kd_search_plain(node.right, range_rect, depth + 1, result)
 
 
-# =========================
-# HELPERY: Rect / contains
-# =========================
 
 def _rect_lrbt(r):
     # próba: Rect z .left/.right/.bottom/.top
@@ -135,9 +131,6 @@ def _world_bounds(points, pad_ratio=0.05):
     return xmin - pad_x, xmax + pad_x, ymin - pad_y, ymax + pad_y
 
 
-# =========================
-# RYSOWANIE STRUKTURY KD
-# =========================
 
 def _draw_kdtree_splits(vis: Visualizer, node, xmin, xmax, ymin, ymax, depth=0, max_levels=10,
                         color="black", alpha=0.25, linewidths=1):
@@ -159,9 +152,6 @@ def _draw_kdtree_splits(vis: Visualizer, node, xmin, xmax, ymin, ymax, depth=0, 
         _draw_kdtree_splits(vis, node.right, xmin, xmax, y, ymax, depth + 1, max_levels, color, alpha, linewidths)
 
 
-# =========================
-# QUERY Z WIZUALIZACJĄ (GIF)
-# =========================
 
 def _kd_query_with_visualization(node, query_rect, vis: Visualizer,
                                  xmin, xmax, ymin, ymax,
@@ -177,7 +167,6 @@ def _kd_query_with_visualization(node, query_rect, vis: Visualizer,
 
     left, right, bottom, top = _rect_lrbt(query_rect)
 
-    # highlight aktualnego podziału
     axis = depth % 2
     if axis == 0:
         x = node.point.x
@@ -186,12 +175,10 @@ def _kd_query_with_visualization(node, query_rect, vis: Visualizer,
         y = node.point.y
         hi = vis.add_line_segment(((xmin, y), (xmax, y)), color=visit_color, linewidths=linewidths, alpha=0.9)
 
-    # punkt w węźle
     if _rect_contains_point(query_rect, node.point):
         found.append(node.point)
         vis.add_point((node.point.x, node.point.y), color=found_point_color, s=25)
 
-    # decyzja o zejściu
     if axis == 0:
         val = node.point.x
         go_left = left < val
@@ -200,7 +187,6 @@ def _kd_query_with_visualization(node, query_rect, vis: Visualizer,
             _kd_query_with_visualization(node.left, query_rect, vis, xmin, val, ymin, ymax,
                                          depth + 1, found, visit_color, found_point_color, prune_color, linewidths)
         elif prune_color is not None:
-            # opcjonalna wizualizacja “uciętego” obszaru
             tmp = _add_rect_lrbt(vis, xmin, val, ymin, ymax, color=prune_color, alpha=0.1, linewidths=1)
             vis.remove_figure(tmp)
 
@@ -234,10 +220,6 @@ def _kd_query_with_visualization(node, query_rect, vis: Visualizer,
     return found
 
 
-# =========================
-# PUBLIC: PNG / GIF z CSV
-# =========================
-
 def render_kdtree_image_from_csv(
     csv_path: str,
     query_rect,
@@ -256,23 +238,19 @@ def render_kdtree_image_from_csv(
     vis.axis_equal()
     vis.add_title(f"KDTree (image): {os.path.basename(csv_path)}")
 
-    # punkty (próbka)
     pts_vis = points
     if sample_points is not None and len(points) > sample_points:
         step = max(1, len(points) // sample_points)
         pts_vis = points[::step]
     vis.add_point([(p.x, p.y) for p in pts_vis], color="blue", s=8, alpha=0.6)
 
-    # world + splity
     _add_rect_lrbt(vis, xmin, xmax, ymin, ymax, color="black", linewidths=2)
     _draw_kdtree_splits(vis, tree.root, xmin, xmax, ymin, ymax, depth=0, max_levels=max_levels,
                         color="black", alpha=0.25, linewidths=1)
 
-    # query
     ql, qr, qb, qt = _rect_lrbt(query_rect)
     _add_rect_lrbt(vis, ql, qr, qb, qt, color="purple", linewidths=2)
 
-    # wynik (bez animacji)
     found = tree.query_range(query_rect)
     if found:
         vis.add_point([(p.x, p.y) for p in found], color="red", s=25)
@@ -302,19 +280,16 @@ def render_kdtree_gif_from_csv(
     vis.axis_equal()
     vis.add_title(f"KDTree (gif): {os.path.basename(csv_path)}")
 
-    # punkty (próbka)
     pts_vis = points
     if sample_points is not None and len(points) > sample_points:
         step = max(1, len(points) // sample_points)
         pts_vis = points[::step]
     vis.add_point([(p.x, p.y) for p in pts_vis], color="blue", s=8, alpha=0.6)
 
-    # world + “tło” splitów
     _add_rect_lrbt(vis, xmin, xmax, ymin, ymax, color="black", linewidths=2)
     _draw_kdtree_splits(vis, tree.root, xmin, xmax, ymin, ymax, depth=0, max_levels=max_levels,
                         color="black", alpha=0.25, linewidths=1)
 
-    # query
     ql, qr, qb, qt = _rect_lrbt(query_rect)
     _add_rect_lrbt(vis, ql, qr, qb, qt, color="purple", linewidths=2)
 
@@ -334,9 +309,6 @@ def render_kdtree_gif_from_csv(
 
     return found
 
-# =========================
-# RUNNERS
-# =========================
 def run_images_for_N_kdtree(
     N: int,
     sample_points=5000,
@@ -420,10 +392,6 @@ def run_gifs_for_N_kdtree(
             msg += f" | png={out_png}"
         print(msg)
 
-
-# =========================
-# RUNNERS (custom): output/custom/*.csv + *.query.csv
-# =========================
 
 
 def run_for_custom_kdtree(custom_dir, RectClass, PointClass,

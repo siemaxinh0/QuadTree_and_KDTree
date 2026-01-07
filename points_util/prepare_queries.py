@@ -1,4 +1,3 @@
-# prepare_queries.py
 import os
 import glob
 

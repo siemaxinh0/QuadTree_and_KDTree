@@ -6,7 +6,6 @@ from data_generators.query_picker import pick_query_for_existing_csv
 from visualizer.main import Visualizer
 from QuadTree.quadtree import Rect, QuadTree, Point as QTPoint, bounding_rect_pairwise
 
-# ---------------- Rect drawing helpers ----------------
 
 def rect_segments(r: Rect):
     left = r.cx - r.hw
@@ -25,7 +24,6 @@ def add_rect(vis: Visualizer, r: Rect, **kwargs):
     return vis.add_line_segment(rect_segments(r), **kwargs)
 
 
-# ---------------- Geometry helpers----------------
 
 def rect_intersects(a: Rect, b: Rect) -> bool:
     if hasattr(a, "intersects"):
@@ -47,7 +45,6 @@ def rect_contains_point(r: Rect, p: QTPoint) -> bool:
     return (left <= p.x < right) and (bottom <= p.y < top)
 
 
-# ---------------- Draw tree structure ----------------
 
 def draw_tree_by_levels(vis: Visualizer, root: QuadTree, max_levels=10,
                         color="black", alpha=0.25, linewidths=1):
@@ -83,7 +80,6 @@ def draw_tree_by_levels(vis: Visualizer, root: QuadTree, max_levels=10,
         vis.add_line_segment(segs, color=color, alpha=alpha, linewidths=linewidths)
 
 
-# ---------------- Query visualization (GIF) ----------------
 
 def query_with_visualization(node: QuadTree, query_rect: Rect, vis: Visualizer,
                              found=None,
@@ -122,9 +118,6 @@ def query_with_visualization(node: QuadTree, query_rect: Rect, vis: Visualizer,
     return found
 
 
-# ======================================================================
-# 1) TYLKO OBRAZ (PNG)
-# ======================================================================
 
 def render_quadtree_image_from_csv(
     csv_path: str,
@@ -181,10 +174,6 @@ def render_quadtree_image_from_csv(
     return found
 
 
-# ======================================================================
-# 2) GIF — animacja przebiegu query
-# ======================================================================
-
 def render_quadtree_gif_from_csv(
     csv_path: str,
     query_square: Rect,
@@ -235,11 +224,6 @@ def render_quadtree_gif_from_csv(
         vis.save(out_png)
 
     return found
-
-
-# ======================================================================
-# RUNNERS — output/N_<N>/
-# ======================================================================
 
 def run_images_for_N(
     N: int,
@@ -323,10 +307,6 @@ def run_for_N(
             msg += f" | png={out_png}"
         print(msg)
 
-
-# ======================================================================
-# RUNNERS — output/custom/
-# ======================================================================
 
 def run_for_custom(
     custom_dir="output/custom",

@@ -1,4 +1,3 @@
-# query_picker.py
 import os
 import csv
 import glob

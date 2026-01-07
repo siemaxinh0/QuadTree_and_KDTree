@@ -23,7 +23,6 @@ def load_query_rect(query_csv_path: str) -> Rect:
         r = csv.reader(f)
         next(r, None)
         cx, cy, hw, hh = next(r)
-    # Rect z points_util powinien sam liczyć left/right/... z cx/hw itd. (albo mieć takie pola)
     return Rect(cx=float(cx), cy=float(cy), hw=float(hw), hh=float(hh))
 
 
