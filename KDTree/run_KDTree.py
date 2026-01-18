@@ -1,3 +1,4 @@
+from QuadTree.algorithmsVis import run_images_for_N
 from points_util.points_classes import Point, Rect
 from kdtreeVis import run_for_custom_kdtree, run_images_for_N_kdtree, run_gifs_for_N_kdtree
 from points_util.prepare_queries import prepare_queries_for_N
@@ -10,4 +11,4 @@ from points_util.prepare_queries import prepare_queries_for_N
 #     max_levels=10,
 #     interval=120
 # )
-run_gifs_for_N_kdtree(100)
+run_images_for_N_kdtree(1000000)

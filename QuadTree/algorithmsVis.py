@@ -1,11 +1,23 @@
 import os
 import glob
 from collections import deque
-
 from data_generators.query_picker import pick_query_for_existing_csv
+from points_util.points_loaders import load_points_csv,load_query_rect
 from visualizer.main import Visualizer
 from QuadTree.quadtree import Rect, QuadTree, Point as QTPoint, bounding_rect_pairwise
+import pickle
+from pathlib import Path
 
+CACHE_DIR = Path("cache_quadtree_vis")
+
+def load_cached_quadtree(cache_path: Path):
+    with cache_path.open("rb") as f:
+        return pickle.load(f)
+
+def save_cached_quadtree(tree, cache_path: Path):
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    with cache_path.open("wb") as f:
+        pickle.dump(tree, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def rect_segments(r: Rect):
     left = r.cx - r.hw
@@ -130,15 +142,26 @@ def render_quadtree_image_from_csv(
 ):
     points = load_points_csv(csv_path)
 
-    world = bounding_rect_pairwise(points)
-    qt = QuadTree(world, capacity=capacity, max_depth=max_depth)
-    for p in points:
-        qt.insert(p)
+    csv_p = Path(csv_path)
+    cache_path = CACHE_DIR / f"{csv_p.stem}_cap{capacity}_d{max_depth}.pkl"
+
+    used_cache = cache_path.exists() and cache_path.stat().st_mtime >= csv_p.stat().st_mtime
+    print(f"[QT][IMAGE] {'CACHE' if used_cache else 'BUILD'} | {csv_p.name} | {cache_path.resolve()}")
+
+    if used_cache:
+        qt = load_cached_quadtree(cache_path)
+        world = qt.boundary
+    else:
+        world = bounding_rect_pairwise(points)
+        qt = QuadTree(world, capacity=capacity, max_depth=max_depth)
+        for p in points:
+            qt.insert(p)
+        save_cached_quadtree(qt, cache_path)
 
     vis = Visualizer()
     vis.add_grid()
     vis.axis_equal()
-    vis.add_title(f"Quadtree (image): {os.path.basename(csv_path)}")
+    vis.add_title(f"Quadtree (image): {os.path.basename(csv_path)} [{'CACHE' if used_cache else 'BUILD'}]")
 
     if sample_points is not None and len(points) > sample_points:
         step = max(1, len(points) // sample_points)
@@ -188,15 +211,26 @@ def render_quadtree_gif_from_csv(
 ):
     points = load_points_csv(csv_path)
 
-    world = bounding_rect_pairwise(points)
-    qt = QuadTree(world, capacity=capacity, max_depth=max_depth)
-    for p in points:
-        qt.insert(p)
+    csv_p = Path(csv_path)
+    cache_path = CACHE_DIR / f"{csv_p.stem}_cap{capacity}_d{max_depth}.pkl"
+
+    used_cache = cache_path.exists() and cache_path.stat().st_mtime >= csv_p.stat().st_mtime
+    print(f"[QT][GIF]   {'CACHE' if used_cache else 'BUILD'} | {csv_p.name} | {cache_path.resolve()}")
+
+    if used_cache:
+        qt = load_cached_quadtree(cache_path)
+        world = qt.boundary
+    else:
+        world = bounding_rect_pairwise(points)
+        qt = QuadTree(world, capacity=capacity, max_depth=max_depth)
+        for p in points:
+            qt.insert(p)
+        save_cached_quadtree(qt, cache_path)
 
     vis = Visualizer()
     vis.add_grid()
     vis.axis_equal()
-    vis.add_title(f"Quadtree (gif): {os.path.basename(csv_path)}")
+    vis.add_title(f"Quadtree (gif): {os.path.basename(csv_path)} [{'CACHE' if used_cache else 'BUILD'}]")
 
     if sample_points is not None and len(points) > sample_points:
         step = max(1, len(points) // sample_points)
@@ -225,6 +259,7 @@ def render_quadtree_gif_from_csv(
 
     return found
 
+
 def run_images_for_N(
     N: int,
     capacity=8,
@@ -232,7 +267,7 @@ def run_images_for_N(
     sample_points=5000,
     max_levels=10
 ):
-    in_dir = os.path.join("output", f"N_{N}")
+    in_dir = os.path.join("../output", f"N_{N}")
     out_dir = os.path.join("times", f"N_{N}", "images")
     os.makedirs(out_dir, exist_ok=True)
 
@@ -271,7 +306,7 @@ def run_for_N(
     interval=120,
     also_save_png=True
 ):
-    in_dir = os.path.join("output", f"N_{N}")
+    in_dir = os.path.join("../output", f"N_{N}")
     out_dir = os.path.join("times", f"N_{N}", "gifs")
     os.makedirs(out_dir, exist_ok=True)
 

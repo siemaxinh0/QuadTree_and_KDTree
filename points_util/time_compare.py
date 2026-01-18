@@ -3,6 +3,30 @@ import csv
 import time
 import glob
 import pandas as pd
+from pathlib import Path
+import pickle
+
+CACHE_DIR = Path("cache_quadtree")
+KD_CACHE_DIR = Path("cache_kdtree")
+
+def load_cached_kdtree(cache_path: Path):
+    with cache_path.open("rb") as f:
+        return pickle.load(f)
+
+def save_cached_kdtree(tree, cache_path: Path):
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    with cache_path.open("wb") as f:
+        pickle.dump(tree, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_cached_quadtree(cache_path: Path):
+    with cache_path.open("rb") as f:
+        return pickle.load(f)
+
+def save_cached_quadtree(tree, cache_path: Path):
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    with cache_path.open("wb") as f:
+        pickle.dump(tree, f, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 from QuadTree.quadtree import bounding_rect_pairwise, QuadTree
 from points_util.points_classes import Point, Rect  # WAŻNE: Rect z left/right/top/bottom
@@ -44,32 +68,51 @@ def dataset_name_from_file(filename: str) -> str:
     return mapping.get(base, base)
 
 
+from pathlib import Path
+import time
+import os
+
 def bench_both_file(csv_path: str, query_rect: Rect, capacity=8, max_depth=16):
     xy = load_xy_csv(csv_path)
     n = len(xy)
 
-    pts = [Point(x, y) for (x, y) in xy]  # points_util.Point
+    pts = [Point(x, y) for (x, y) in xy]
 
-    # -------- QuadTree
+    csv_p = Path(csv_path)
+    cache_path = CACHE_DIR / f"{csv_p.stem}_cap{capacity}_d{max_depth}.pkl"
+
+    # -------- QuadTree build/load
     t0 = time.perf_counter()
-    world = bounding_rect_pairwise(pts)
-    qt = QuadTree(world, capacity=capacity, max_depth=max_depth)
-    for p in pts:
-        qt.insert(p)
+    if cache_path.exists() and cache_path.stat().st_mtime >= csv_p.stat().st_mtime:
+        qt = load_cached_quadtree(cache_path)
+    else:
+        world = bounding_rect_pairwise(pts)
+        qt = QuadTree(world, capacity=capacity, max_depth=max_depth)
+        for p in pts:
+            qt.insert(p)
+        save_cached_quadtree(qt, cache_path)
     t1 = time.perf_counter()
     qt_build_s = t1 - t0
-
     t2 = time.perf_counter()
     qt_hits = qt.query(query_rect)
     t3 = time.perf_counter()
     qt_query_s = t3 - t2
 
-    # -------- KDTree
+    # -------- KDTree build
+    kd_cache_path = KD_CACHE_DIR / f"{csv_p.stem}.pkl"
+
+    kd_used_cache = kd_cache_path.exists() and kd_cache_path.stat().st_mtime >= csv_p.stat().st_mtime
+
     t4 = time.perf_counter()
-    kd = KDTree(list(pts))
+    if kd_used_cache:
+        kd = load_cached_kdtree(kd_cache_path)
+    else:
+        kd = KDTree(list(pts))
+        save_cached_kdtree(kd, kd_cache_path)
     t5 = time.perf_counter()
     kd_build_s = t5 - t4
 
+    # -------- KDTree query
     t6 = time.perf_counter()
     kd_hits = kd.query_range(query_rect)
     t7 = time.perf_counter()
@@ -90,6 +133,7 @@ def bench_both_file(csv_path: str, query_rect: Rect, capacity=8, max_depth=16):
         "kd_query_s": kd_query_s,
         "kd_hits": len(kd_hits),
     }
+
 
 
 def bench_both_all(output_root: str, capacity=8, max_depth=16):

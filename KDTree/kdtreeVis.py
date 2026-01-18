@@ -5,6 +5,19 @@ import glob
 from visualizer.main import Visualizer
 from points_util.points_classes import *
 from points_util.points_loaders import *
+import pickle
+from pathlib import Path
+
+KD_CACHE_DIR = Path("cache_kdtree_vis")
+
+def load_cached_kdtree(cache_path: Path):
+    with cache_path.open("rb") as f:
+        return pickle.load(f)
+
+def save_cached_kdtree(tree, cache_path: Path):
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    with cache_path.open("wb") as f:
+        pickle.dump(tree, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
@@ -229,14 +242,25 @@ def render_kdtree_image_from_csv(
     max_levels=10,
 ):
     points = _load_points_csv_as_simple_points(csv_path, PointClass)
-    tree = KDTree(points)
+
+    csv_p = Path(csv_path)
+    cache_path = KD_CACHE_DIR / f"{csv_p.stem}.pkl"
+
+    used_cache = cache_path.exists() and cache_path.stat().st_mtime >= csv_p.stat().st_mtime
+    print(f"[KD][IMAGE] {'CACHE' if used_cache else 'BUILD'} | {csv_p.name} | {cache_path.resolve()}")
+
+    if used_cache:
+        tree = load_cached_kdtree(cache_path)
+    else:
+        tree = KDTree(points)
+        save_cached_kdtree(tree, cache_path)
 
     xmin, xmax, ymin, ymax = _world_bounds(points)
 
     vis = Visualizer()
     vis.add_grid()
     vis.axis_equal()
-    vis.add_title(f"KDTree (image): {os.path.basename(csv_path)}")
+    vis.add_title(f"KDTree (image): {os.path.basename(csv_path)} [{'CACHE' if used_cache else 'BUILD'}]")
 
     pts_vis = points
     if sample_points is not None and len(points) > sample_points:
@@ -246,7 +270,7 @@ def render_kdtree_image_from_csv(
 
     _add_rect_lrbt(vis, xmin, xmax, ymin, ymax, color="black", linewidths=2)
     _draw_kdtree_splits(vis, tree.root, xmin, xmax, ymin, ymax, depth=0, max_levels=max_levels,
-                        color="black", alpha=0.25, linewidths=1)
+                        color="black", alpha=0.25, linewidths=linewidths if 'linewidths' in locals() else 1)
 
     ql, qr, qb, qt = _rect_lrbt(query_rect)
     _add_rect_lrbt(vis, ql, qr, qb, qt, color="purple", linewidths=2)
@@ -257,6 +281,7 @@ def render_kdtree_image_from_csv(
 
     vis.save(out_png)
     return found
+
 
 
 def render_kdtree_gif_from_csv(
@@ -271,14 +296,25 @@ def render_kdtree_gif_from_csv(
     interval=120,
 ):
     points = _load_points_csv_as_simple_points(csv_path, PointClass)
-    tree = KDTree(points)
+
+    csv_p = Path(csv_path)
+    cache_path = KD_CACHE_DIR / f"{csv_p.stem}.pkl"
+
+    used_cache = cache_path.exists() and cache_path.stat().st_mtime >= csv_p.stat().st_mtime
+    print(f"[KD][GIF]   {'CACHE' if used_cache else 'BUILD'} | {csv_p.name} | {cache_path.resolve()}")
+
+    if used_cache:
+        tree = load_cached_kdtree(cache_path)
+    else:
+        tree = KDTree(points)
+        save_cached_kdtree(tree, cache_path)
 
     xmin, xmax, ymin, ymax = _world_bounds(points)
 
     vis = Visualizer()
     vis.add_grid()
     vis.axis_equal()
-    vis.add_title(f"KDTree (gif): {os.path.basename(csv_path)}")
+    vis.add_title(f"KDTree (gif): {os.path.basename(csv_path)} [{'CACHE' if used_cache else 'BUILD'}]")
 
     pts_vis = points
     if sample_points is not None and len(points) > sample_points:
@@ -308,6 +344,7 @@ def render_kdtree_gif_from_csv(
         vis.save(out_png)
 
     return found
+
 
 def run_images_for_N_kdtree(
     N: int,
